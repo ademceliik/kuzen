@@ -81,26 +81,81 @@
     }
 
     // Mesajları yükle
+    var allMessages = [];
+    var shownCount = 0;
+    var batchSize = 10;
+
     function loadMessages() {
-      db.ref("messages").on("value", function(snapshot) {
-        var msgs = [];
+      db.ref("messages").once("value", function(snapshot) {
+        allMessages = [];
         snapshot.forEach(function(child) {
-          msgs.push(child.val());
+          allMessages.push(child.val());
         });
-        msgs.sort(function(a, b) {
+    
+        // Tarihe göre sırala (yeni → eski)
+        allMessages.sort(function(a, b) {
           return new Date(b.date) - new Date(a.date);
         });
-        msgs.reverse();
+    
+        shownCount = 0;
         messageList.innerHTML = "";
-        for (var i = 0; i < msgs.length; i++) {
-          var msg = msgs[i];
-          var div = document.createElement("div");
-          div.className = "message";
-          div.innerHTML = "<strong>" + msg.name + "</strong> [" + msg.date + "]<br>" + msg.text;
-          messageList.appendChild(div);
-        }
+        showMoreMessages();
       });
     }
+    
+    function showMoreMessages() {
+      var end = shownCount + batchSize;
+      var slice = allMessages.slice(shownCount, end);
+    
+      for (var i = 0; i < slice.length; i++) {
+        var msg = slice[i];
+        var div = document.createElement("div");
+        div.className = "message";
+        div.innerHTML = "<strong>" + msg.name + "</strong> [" + formatTimeAgo(msg.date) + "]<br>" + msg.text;
+        messageList.appendChild(div);
+      }
+    
+      shownCount += slice.length;
+    
+      // Daha fazla varsa "Daha fazla..." butonunu göster
+      if (shownCount < allMessages.length) {
+        var moreBtn = document.createElement("button");
+        moreBtn.textContent = "Daha fazla...";
+        moreBtn.onclick = function() {
+          moreBtn.remove();
+          showMoreMessages();
+        };
+        messageList.appendChild(moreBtn);
+      }
+    }
+
+    function formatTimeAgo(dateString) {
+      var now = new Date();
+      var date = new Date(dateString);
+      var diffMs = now - date;
+      var diffMin = Math.floor(diffMs / 60000);
+      var diffHr = Math.floor(diffMin / 60);
+    
+      if (diffMin < 60) {
+        return diffMin + " dakika önce";
+      } else if (diffHr < 24) {
+        return diffHr + " saat önce";
+      } else {
+        // Tam tarih-saat (DD.MM.YYYY HH:MM)
+        var d = date.getDate();
+        var m = date.getMonth() + 1;
+        var y = date.getFullYear();
+        var h = date.getHours();
+        var min = date.getMinutes();
+        if (d < 10) d = "0" + d;
+        if (m < 10) m = "0" + m;
+        if (h < 10) h = "0" + h;
+        if (min < 10) min = "0" + min;
+        return d + "." + m + "." + y + " " + h + ":" + min;
+      }
+    }
+
+
 
     // Mesaj gönder
     messageForm.onsubmit = function(e) {
