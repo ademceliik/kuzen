@@ -118,7 +118,7 @@
     var batchSize = 10;
 
     function loadMessages() {
-      db.ref("messages").once("value", function(snapshot) {
+      db.ref("messages").on("value", function(snapshot) {
         allMessages = [];
         snapshot.forEach(function(child) {
           allMessages.push(child.val());
@@ -181,6 +181,7 @@
 
     // Çıkış yap
     logoutBtn.onclick = function() {
+      db.ref("messages").off();
       currentUserName = null;
       messagesDiv.style.display = "none";
       loginDiv.style.display = "block";
