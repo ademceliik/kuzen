@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Bir Web Sitesi</title>
+  <title>PIN ile Mesaj</title>
   <style>
     body { font-family: sans-serif; margin: 20px; }
     #login, #messages { display: none; }
@@ -25,16 +25,26 @@
       <button type="submit">Gönder</button>
     </form>
     <div id="messageList"></div>
+    <button id="logoutBtn">Çıkış</button>
   </div>
 
+  <!-- Firebase v8 SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
   <script>
-    // ES5 uyumlu pin listesi
-    var pinList = {
-      "5055": "Apo",
-      "6365": "Adem",
-      "6470": "A.Kadir",
-      "4378": "Ahmet"
+    // Firebase Config (kendi bilgilerinle değiştir)
+    var firebaseConfig = {
+      apiKey: "AIzaSyCGdt0m5Ug2PJb3kPmCTba4iQTKH8i-Uao",
+      authDomain: "messaging-with-kuzen.firebaseapp.com",
+      databaseURL: "https://messaging-with-kuzen-default-rtdb.firebaseio.com",
+      projectId: "messaging-with-kuzen",
+      storageBucket: "messaging-with-kuzen.firebasestorage.app",
+      messagingSenderId: "86051838766",
+      appId: "1:86051838766:web:aa7e71397b394b128f78bf"
     };
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.database();
 
     var loginDiv = document.getElementById("login");
     var messagesDiv = document.getElementById("messages");
@@ -44,55 +54,73 @@
     var messageForm = document.getElementById("messageForm");
     var messageText = document.getElementById("messageText");
     var messageList = document.getElementById("messageList");
+    var logoutBtn = document.getElementById("logoutBtn");
 
-    var currentUser = null;
-
-    // PIN kontrolü
-    pinBtn.onclick = function() {
-      var pin = pinInput.value;
-      if (pinList.hasOwnProperty(pin)) {
-        currentUser = pinList[pin];
-        showMessages();
-      } else {
-        pinError.textContent = "Geçersiz PIN";
-      }
-    };
+    var currentUserName = null;
 
     // Sayfa yüklendiğinde login ekranını göster
     loginDiv.style.display = "block";
 
-    // Mesajları yükle ve göster
+    // PIN kontrolü
+    pinBtn.onclick = function() {
+      var pin = pinInput.value;
+      db.ref("pins/" + pin).once("value", function(snapshot){
+        if (snapshot.exists()) {
+          currentUserName = snapshot.val();
+          showMessages();
+        } else {
+          pinError.textContent = "Geçersiz PIN";
+        }
+      });
+    };
+
     function showMessages() {
       loginDiv.style.display = "none";
       messagesDiv.style.display = "block";
       loadMessages();
     }
 
+    // Mesajları yükle
     function loadMessages() {
-      var msgs = JSON.parse(localStorage.getItem("messages") || "[]");
-      messageList.innerHTML = "";
-      for (var i = msgs.length - 1; i >= 0; i--) {
-        var msg = msgs[i];
-        var div = document.createElement("div");
-        div.className = "message";
-        div.innerHTML = "<strong>" + msg.name + "</strong> [" + msg.date + "]<br>" + msg.text;
-        messageList.appendChild(div);
-      }
+      db.ref("messages").on("value", function(snapshot) {
+        var msgs = [];
+        snapshot.forEach(function(child) {
+          msgs.push(child.val());
+        });
+        msgs.sort(function(a, b) {
+          return new Date(b.date) - new Date(a.date);
+        });
+        messageList.innerHTML = "";
+        for (var i = 0; i < msgs.length; i++) {
+          var msg = msgs[i];
+          var div = document.createElement("div");
+          div.className = "message";
+          div.innerHTML = "<strong>" + msg.name + "</strong> [" + msg.date + "]<br>" + msg.text;
+          messageList.appendChild(div);
+        }
+      });
     }
 
-    // Mesaj gönderme
+    // Mesaj gönder
     messageForm.onsubmit = function(e) {
       e.preventDefault();
       var text = messageText.value;
-      var msgs = JSON.parse(localStorage.getItem("messages") || "[]");
-      msgs.push({
-        name: currentUser,
+      var msgRef = db.ref("messages").push();
+      msgRef.set({
+        name: currentUserName,
         date: new Date().toLocaleString(),
         text: text
       });
-      localStorage.setItem("messages", JSON.stringify(msgs));
       messageText.value = "";
-      loadMessages();
+    };
+
+    // Çıkış yap
+    logoutBtn.onclick = function() {
+      currentUserName = null;
+      messagesDiv.style.display = "none";
+      loginDiv.style.display = "block";
+      pinInput.value = "";
+      pinError.textContent = "";
     };
   </script>
 
