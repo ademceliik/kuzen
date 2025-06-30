@@ -145,7 +145,8 @@
         div.className = "message";
         div.innerHTML = "<strong>" + msg.name + "</strong> [" + formatTimeAgo(msg.date) + "]<br>" + msg.text;
         //messageList.reverse();
-        messageList.insertBefore(div, messageList.firstChild);
+        //messageList.insertBefore(div, messageList.firstChild);
+        messageList.appendChild(div);
       }
     
       shownCount += slice.length;
