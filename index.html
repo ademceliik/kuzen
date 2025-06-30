@@ -74,6 +74,32 @@
       });
     };
 
+    function formatTimeAgo(dateString) {
+      var now = new Date();
+      var date = new Date(dateString);
+      var diffMs = now - date;
+      var diffMin = Math.floor(diffMs / 60000);
+      var diffHr = Math.floor(diffMin / 60);
+    
+      if (diffMin < 60) {
+        return diffMin + " dakika önce";
+      } else if (diffHr < 24) {
+        return diffHr + " saat önce";
+      } else {
+        // Tam tarih-saat (DD.MM.YYYY HH:MM)
+        var d = date.getDate();
+        var m = date.getMonth() + 1;
+        var y = date.getFullYear();
+        var h = date.getHours();
+        var min = date.getMinutes();
+        if (d < 10) d = "0" + d;
+        if (m < 10) m = "0" + m;
+        if (h < 10) h = "0" + h;
+        if (min < 10) min = "0" + min;
+        return d + "." + m + "." + y + " " + h + ":" + min;
+      }
+    }
+
     function showMessages() {
       loginDiv.style.display = "none";
       messagesDiv.style.display = "block";
@@ -112,6 +138,7 @@
         var div = document.createElement("div");
         div.className = "message";
         div.innerHTML = "<strong>" + msg.name + "</strong> [" + formatTimeAgo(msg.date) + "]<br>" + msg.text;
+        messageList.reverse();
         messageList.appendChild(div);
       }
     
@@ -129,31 +156,7 @@
       }
     }
 
-    function formatTimeAgo(dateString) {
-      var now = new Date();
-      var date = new Date(dateString);
-      var diffMs = now - date;
-      var diffMin = Math.floor(diffMs / 60000);
-      var diffHr = Math.floor(diffMin / 60);
-    
-      if (diffMin < 60) {
-        return diffMin + " dakika önce";
-      } else if (diffHr < 24) {
-        return diffHr + " saat önce";
-      } else {
-        // Tam tarih-saat (DD.MM.YYYY HH:MM)
-        var d = date.getDate();
-        var m = date.getMonth() + 1;
-        var y = date.getFullYear();
-        var h = date.getHours();
-        var min = date.getMinutes();
-        if (d < 10) d = "0" + d;
-        if (m < 10) m = "0" + m;
-        if (h < 10) h = "0" + h;
-        if (min < 10) min = "0" + min;
-        return d + "." + m + "." + y + " " + h + ":" + min;
-      }
-    }
+
 
 
 
