@@ -96,7 +96,7 @@
           var div = document.createElement("div");
           div.className = "message";
           div.innerHTML = "<strong>" + msg.name + "</strong> [" + msg.date + "]<br>" + msg.text;
-          messageList.appendChild(div);
+          messageList.prepend(div);
         }
       });
     }
