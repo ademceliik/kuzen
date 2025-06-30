@@ -77,6 +77,11 @@
     function formatTimeAgo(dateString) {
       var now = new Date();
       var date = new Date(dateString);
+    
+      if (isNaN(date.getTime())) {
+        return dateString; // parse edilemiyorsa orijinal string döndür
+      }
+    
       var diffMs = now - date;
       var diffMin = Math.floor(diffMs / 60000);
       var diffHr = Math.floor(diffMin / 60);
@@ -99,6 +104,7 @@
         return d + "." + m + "." + y + " " + h + ":" + min;
       }
     }
+
 
     function showMessages() {
       loginDiv.style.display = "none";
@@ -139,7 +145,7 @@
         div.className = "message";
         div.innerHTML = "<strong>" + msg.name + "</strong> [" + formatTimeAgo(msg.date) + "]<br>" + msg.text;
         //messageList.reverse();
-        messageList.appendChild(div);
+        messageList.insertBefore(div, messageList.firstChild);
       }
     
       shownCount += slice.length;
@@ -167,7 +173,7 @@
       var msgRef = db.ref("messages").push();
       msgRef.set({
         name: currentUserName,
-        date: new Date().toLocaleString(),
+        date: new Date().toISOString(),
         text: text
       });
       messageText.value = "";
